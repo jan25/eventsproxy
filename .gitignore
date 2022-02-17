@@ -3,3 +3,6 @@ bin/
 
 # notes
 NOTES.md
+
+# others
+.DS_Store

@@ -26,7 +26,7 @@ func NewClient() *Client {
 func (c *Client) Publish(e *event.Event) {
 	t := e.Text()
 	log.Println(string(t))
-	// fmt.Fprintln(c.conn, e.Text())
+	// fmt.Fprintln(c.conn, e.Text()) <- this didnt work
 	c.conn.Write(e.Text())
 }
 
