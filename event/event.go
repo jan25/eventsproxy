@@ -48,7 +48,7 @@ func (e *Event) Text() []byte {
 		log.Fatal(err)
 	}
 	if n != len(s) {
-		log.Fatalf("Marshalled into mismatching sizes: %d vs %d", n, len(s))
+		log.Fatalf("marshalled into mismatching sizes: %d vs %d", n, len(s))
 	}
 	return b.Bytes()
 }

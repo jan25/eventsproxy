@@ -8,7 +8,8 @@ import (
 )
 
 type processor struct {
-	incomingEvents <-chan *event.Event
+	incomingEvents <-chan event.Event
+	metrics        chan<- metric
 	backend        Reporter
 
 	buffer        []event.Event
@@ -17,9 +18,10 @@ type processor struct {
 	flushInterval time.Duration
 }
 
-func NewProcessor(events <-chan *event.Event, backend Reporter, bufferSize int, flushInterval time.Duration) *processor {
+func NewProcessor(incomingEvents <-chan event.Event, metrics chan<- metric, backend Reporter, bufferSize int, flushInterval time.Duration) *processor {
 	return &processor{
-		incomingEvents: events,
+		incomingEvents: incomingEvents,
+		metrics:        metrics,
 		backend:        backend,
 		bufferSize:     bufferSize,
 		bufferIdx:      0,
@@ -45,17 +47,23 @@ func (p *processor) Process() {
 	}
 }
 
-func (p *processor) handleEvent(e *event.Event) {
+func (p *processor) handleEvent(e event.Event) {
 	if p.bufferSize == p.bufferIdx {
 		log.Println("buffer full. cant process new events")
 		return
 	}
 
-	p.buffer[p.bufferIdx] = *e
+	p.buffer[p.bufferIdx] = e
 	p.bufferIdx += 1
+	p.metrics <- metric{kind: RECEIVED}
 }
 
 func (p *processor) flush() {
-	p.backend.Report(p.buffer[:p.bufferIdx]...)
-	p.bufferIdx = 0
+	log.Println("flushing events..")
+	if err := p.backend.Report(p.buffer[:p.bufferIdx]...); err == nil {
+		p.metrics <- metric{kind: REPORTED, value: p.bufferIdx}
+		p.bufferIdx = 0
+	} else {
+		log.Printf("error flushing: %v\n", err)
+	}
 }

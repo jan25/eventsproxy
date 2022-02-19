@@ -26,7 +26,6 @@ func (s *StdoutReporter) Init() error {
 }
 
 func (s *StdoutReporter) Report(events ...event.Event) error {
-	log.Println("Reporting events..")
 	for _, e := range events {
 		log.Printf("%+v\n", e)
 	}
