@@ -9,6 +9,7 @@ import (
 
 type processor struct {
 	incomingEvents <-chan *event.Event
+	backend        Reporter
 
 	buffer        []event.Event
 	bufferIdx     int
@@ -16,9 +17,10 @@ type processor struct {
 	flushInterval time.Duration
 }
 
-func NewProcessor(events <-chan *event.Event, bufferSize int, flushInterval time.Duration) *processor {
+func NewProcessor(events <-chan *event.Event, backend Reporter, bufferSize int, flushInterval time.Duration) *processor {
 	return &processor{
 		incomingEvents: events,
+		backend:        backend,
 		bufferSize:     bufferSize,
 		bufferIdx:      0,
 		buffer:         make([]event.Event, bufferSize),
@@ -54,11 +56,6 @@ func (p *processor) handleEvent(e *event.Event) {
 }
 
 func (p *processor) flush() {
-	// TODO(jan25): use a reporting provider to flush to.
-	log.Println("Flushing events..")
-	for i := 0; i < p.bufferIdx; i++ {
-		log.Printf("%+v\n", p.buffer[i])
-	}
-
+	p.backend.Report(p.buffer[:p.bufferIdx]...)
 	p.bufferIdx = 0
 }

@@ -27,7 +27,7 @@ func main() {
 	eventsServer := &eventsServer{port: defaultUDPPort, bufferSize: bufferSize, events: events}
 	go eventsServer.listenAndServe()
 
-	p := NewProcessor(events, bufferSize, defaultFlushInterval)
+	p := NewProcessor(events, new(StdoutReporter), bufferSize, defaultFlushInterval)
 	go p.Process()
 
 	log.Printf("Staring adming server at %q", defaultAdminPort)
